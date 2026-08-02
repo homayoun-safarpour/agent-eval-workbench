@@ -17,5 +17,17 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
-      - run: ruff check src tests
+      - run: ruff check src tests scripts
       - run: pytest -q
+      - name: Controlled scenario end-to-end
+        run: >-
+          agent-eval run examples/scenarios/benchmark.yaml
+          --output /tmp/benchmark-bundle.json
+          --min-composite 0.10
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t agent-eval-workbench .
+      - run: docker run --rm agent-eval-workbench

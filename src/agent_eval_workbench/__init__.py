@@ -1,5 +1,5 @@
-"""Agent evaluation workbench: success, reliability, bias, failure modes."""
+"""Agent evaluation workbench: controlled scenarios and trace-grounded evaluation."""
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

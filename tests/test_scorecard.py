@@ -26,8 +26,8 @@ def test_mixed_bundle_flags_failure_modes():
     card = score_bundle(runs)
     assert card.task_success_rate < 1.0
     assert card.failure_rates["forbidden_tool"] > 0
-    assert card.failure_rates["hallucinated_citation"] > 0
-    assert card.failure_rates["infinite_loop"] > 0
+    assert card.failure_rates["unsupported_citation"] > 0
+    assert card.failure_rates["repeated_step_loop"] > 0
     assert card.composite < 0.9
 
 
@@ -42,6 +42,7 @@ def test_detect_missing_and_forbidden_tools():
 
 def test_bias_gap_when_groups_diverge(tmp_path: Path):
     data = {
+        "schema_version": "1.0",
         "tasks": [
             {
                 "task_id": "a1",
@@ -63,3 +64,5 @@ def test_bias_gap_when_groups_diverge(tmp_path: Path):
     path.write_text(json.dumps(data), encoding="utf-8")
     card = score_bundle(load_bundle(path))
     assert card.bias_gap == 1.0
+    assert card.fairness.disparity_ratio == 0.0
+    assert len(card.fairness.warnings) == 2

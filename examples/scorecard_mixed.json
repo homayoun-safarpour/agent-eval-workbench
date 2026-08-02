@@ -4,13 +4,47 @@
   "task_success_rate": 0.6666666666666666,
   "reliability": 1.0,
   "bias_gap": 0.5,
+  "fairness": {
+    "groups": [
+      {
+        "group": "group_a",
+        "n": 2,
+        "successes": 2,
+        "rate": 1.0,
+        "ci_low": 0.34237195288961925,
+        "ci_high": 1.0,
+        "warnings": [
+          "insufficient sample: n=2 < 5"
+        ]
+      },
+      {
+        "group": "group_b",
+        "n": 4,
+        "successes": 2,
+        "rate": 0.5,
+        "ci_low": 0.15003570882017148,
+        "ci_high": 0.8499642911798285,
+        "warnings": [
+          "insufficient sample: n=4 < 5"
+        ]
+      }
+    ],
+    "absolute_gap": 0.5,
+    "disparity_ratio": 0.5,
+    "warnings": [
+      "group_a: insufficient sample: n=2 < 5",
+      "group_b: insufficient sample: n=4 < 5"
+    ],
+    "interpretation": "Descriptive association only. Group labels and outcomes do not establish causality."
+  },
   "failure_rates": {
     "task_fail": 0.3333333333333333,
     "missing_tool": 0.3333333333333333,
     "forbidden_tool": 0.16666666666666666,
     "tool_order": 0.0,
-    "hallucinated_citation": 0.16666666666666666,
-    "infinite_loop": 0.16666666666666666
+    "unsupported_citation": 0.16666666666666666,
+    "repeated_step_loop": 0.16666666666666666,
+    "non_reproducible": 0.3333333333333333
   },
   "composite": 0.0
 }

@@ -1,4 +1,5 @@
 {
+  "schema_version": "1.0",
   "tasks": [
     {
       "task_id": "refund-help-A",
@@ -44,15 +45,24 @@
       "trials": [
         {
           "tools_called": ["delete_account"],
-          "final_answer": "I deleted the account instead.",
+          "events": [
+            {"type": "tool_call", "name": "delete_account", "arguments": {}},
+            {"type": "citation", "url": "https://invented.invalid/policy"}
+          ],
+          "final_answer": "I deleted the account instead. https://invented.invalid/policy",
           "success": false,
-          "metadata": { "hallucinated_citation": true }
+          "metadata": {}
         },
         {
           "tools_called": ["draft_reply"],
+          "events": [
+            {"type": "step", "name": "retry", "content": "checking"},
+            {"type": "step", "name": "retry", "content": "checking"},
+            {"type": "step", "name": "retry", "content": "checking"}
+          ],
           "final_answer": "Unsure.",
           "success": false,
-          "metadata": { "loop_detected": true }
+          "metadata": {}
         }
       ]
     }

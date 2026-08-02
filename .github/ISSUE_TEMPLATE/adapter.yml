@@ -1,0 +1,25 @@
+name: Trace adapter request
+description: Propose support for a framework trace export
+title: "adapter: "
+labels: ["adapter", "good first issue"]
+body:
+  - type: input
+    id: framework
+    attributes:
+      label: Framework and pinned version
+    validations:
+      required: true
+  - type: textarea
+    id: sample
+    attributes:
+      label: Public, secret-free sample shape
+      description: Describe the spans and fields without pasting credentials or private traces.
+    validations:
+      required: true
+  - type: textarea
+    id: mapping
+    attributes:
+      label: Expected event mapping
+      description: Map source fields to tool_call, tool_result, message, step, or citation.
+    validations:
+      required: true

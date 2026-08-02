@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from dataclasses import asdict, dataclass
 from typing import Any
 
 from agent_eval_workbench.bundle import TaskRun
 from agent_eval_workbench.failures import FAILURE_MODES, detect_failures
+from agent_eval_workbench.fairness import FairnessReport, analyze_fairness
 
 
 @dataclass(frozen=True)
@@ -17,6 +17,7 @@ class Scorecard:
     task_success_rate: float
     reliability: float
     bias_gap: float
+    fairness: FairnessReport
     failure_rates: dict[str, float]
     composite: float
 
@@ -41,23 +42,23 @@ def score_bundle(runs: list[TaskRun]) -> Scorecard:
     reliabilities = [_trial_success_consistent(r) for r in runs if r.trials]
     reliability = sum(reliabilities) / len(reliabilities) if reliabilities else 0.0
 
-    # Bias gap: |success_rate(group_a) - success_rate(group_b)| across demographic tags
-    by_tag: dict[str, list[bool]] = defaultdict(list)
-    for r in runs:
-        if r.demographic_tag:
-            for t in r.trials:
-                by_tag[str(r.demographic_tag)].append(t.success)
-    rates = []
-    for flags in by_tag.values():
-        if flags:
-            rates.append(sum(flags) / len(flags))
-    bias_gap = (max(rates) - min(rates)) if len(rates) > 1 else 0.0
+    fairness = analyze_fairness(runs)
+    bias_gap = fairness.absolute_gap
 
     fail_counts = {m: 0 for m in FAILURE_MODES}
     for r in runs:
         for t in r.trials:
             for hit in detect_failures(r, t):
                 fail_counts[hit.mode] = fail_counts.get(hit.mode, 0) + 1
+        signatures = {
+            (
+                trial.success,
+                tuple(trial.tools_called),
+            )
+            for trial in r.trials
+        }
+        if len(signatures) > 1:
+            fail_counts["non_reproducible"] += len(r.trials)
     failure_rates = {m: fail_counts[m] / n_trials for m in FAILURE_MODES}
 
     # Composite: reward success + reliability, penalize bias gap and forbidden/missing tools
@@ -74,6 +75,7 @@ def score_bundle(runs: list[TaskRun]) -> Scorecard:
         task_success_rate=task_success_rate,
         reliability=reliability,
         bias_gap=bias_gap,
+        fairness=fairness,
         failure_rates=failure_rates,
         composite=composite,
     )

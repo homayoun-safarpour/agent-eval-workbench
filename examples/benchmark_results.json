@@ -1,0 +1,73 @@
+{
+  "benchmark": {
+    "name": "controlled-trace-failures",
+    "version": "1.0",
+    "scenario_count": 24,
+    "failure_labels": 18,
+    "backend": "mock",
+    "model": null,
+    "python": "3.13.2"
+  },
+  "detector_metrics": {
+    "true_positive": 18,
+    "false_positive": 0,
+    "false_negative": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "errors": []
+  },
+  "runtime": {
+    "elapsed_ms": 28.966,
+    "mean_scenario_ms": 1.207,
+    "recorded_cost_usd": 0.0
+  },
+  "scorecard": {
+    "n_tasks": 24,
+    "n_trials": 24,
+    "task_success_rate": 0.875,
+    "reliability": 1.0,
+    "bias_gap": 0.08333333333333326,
+    "fairness": {
+      "groups": [
+        {
+          "group": "group_a",
+          "n": 12,
+          "successes": 11,
+          "rate": 0.9166666666666666,
+          "ci_low": 0.6461140782014047,
+          "ci_high": 0.9851352905492264,
+          "warnings": []
+        },
+        {
+          "group": "group_b",
+          "n": 12,
+          "successes": 10,
+          "rate": 0.8333333333333334,
+          "ci_low": 0.5519636426153274,
+          "ci_high": 0.9530358523851776,
+          "warnings": []
+        }
+      ],
+      "absolute_gap": 0.08333333333333326,
+      "disparity_ratio": 0.9090909090909092,
+      "warnings": [],
+      "interpretation": "Descriptive association only. Group labels and outcomes do not establish causality."
+    },
+    "failure_rates": {
+      "task_fail": 0.125,
+      "missing_tool": 0.125,
+      "forbidden_tool": 0.125,
+      "tool_order": 0.125,
+      "unsupported_citation": 0.125,
+      "repeated_step_loop": 0.125,
+      "non_reproducible": 0.0
+    },
+    "composite": 0.6666666666666667
+  },
+  "limitations": [
+    "Synthetic scenarios test detector behavior, not open-world agent quality.",
+    "Fairness outputs are descriptive and non-causal.",
+    "Mock timing is local execution overhead, not API latency.",
+    "No trajectory anomaly model is claimed; deterministic rules achieved full labels."
+  ]
+}

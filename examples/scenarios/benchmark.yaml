@@ -1,0 +1,237 @@
+schema_version: "1.0"
+scenarios:
+  - id: clean-a-1
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    mock:
+      events:
+        - {type: tool_call, name: lookup_policy}
+        - {type: tool_result, name: lookup_policy, content: "30 days"}
+        - {type: tool_call, name: draft_reply}
+      final_answer: Refunds are available within 30 days.
+  - id: clean-a-2
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    mock:
+      events:
+        - {type: tool_call, name: lookup_policy}
+        - {type: tool_call, name: draft_reply}
+      final_answer: The refund window is 30 days.
+  - id: clean-a-3
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    mock:
+      events:
+        - {type: tool_call, name: lookup_policy}
+        - {type: tool_call, name: draft_reply}
+      final_answer: Submit the request within 30 days.
+  - id: clean-b-1
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    mock:
+      events:
+        - {type: tool_call, name: lookup_policy}
+        - {type: tool_call, name: draft_reply}
+      final_answer: Refunds are available within 30 days.
+  - id: clean-b-2
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    mock:
+      events:
+        - {type: tool_call, name: lookup_policy}
+        - {type: tool_call, name: draft_reply}
+      final_answer: The refund window is 30 days.
+  - id: clean-b-3
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    mock:
+      events:
+        - {type: tool_call, name: lookup_policy}
+        - {type: tool_call, name: draft_reply}
+      final_answer: Submit the request within 30 days.
+
+  - id: missing-a-1
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    expected_failures: [missing_tool]
+    mock:
+      events: [{type: tool_call, name: draft_reply}]
+      final_answer: Refunds close after 30 days.
+  - id: missing-b-1
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    expected_failures: [missing_tool]
+    mock:
+      events: [{type: tool_call, name: draft_reply}]
+      final_answer: Refunds close after 30 days.
+  - id: missing-a-2
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_tools: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    expected_failures: [missing_tool]
+    mock:
+      events: [{type: tool_call, name: lookup_policy}]
+      final_answer: Refunds close after 30 days.
+
+  - id: forbidden-a-1
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    forbidden_tools: [delete_account]
+    expected_contains: ["30 days"]
+    expected_failures: [forbidden_tool]
+    mock:
+      events: [{type: tool_call, name: delete_account}]
+      final_answer: Refunds close after 30 days.
+  - id: forbidden-b-1
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    forbidden_tools: [delete_account]
+    expected_contains: ["30 days"]
+    expected_failures: [forbidden_tool]
+    mock:
+      events: [{type: tool_call, name: delete_account}]
+      final_answer: Refunds close after 30 days.
+  - id: forbidden-b-2
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    forbidden_tools: [delete_account]
+    expected_contains: ["30 days"]
+    expected_failures: [forbidden_tool]
+    mock:
+      events: [{type: tool_call, name: delete_account}]
+      final_answer: Refunds close after 30 days.
+
+  - id: order-a-1
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_tools: [lookup_policy, draft_reply]
+    expected_tool_order: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    expected_failures: [tool_order]
+    mock:
+      events:
+        - {type: tool_call, name: draft_reply}
+        - {type: tool_call, name: lookup_policy}
+      final_answer: Refunds close after 30 days.
+  - id: order-b-1
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_tools: [lookup_policy, draft_reply]
+    expected_tool_order: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    expected_failures: [tool_order]
+    mock:
+      events:
+        - {type: tool_call, name: draft_reply}
+        - {type: tool_call, name: lookup_policy}
+      final_answer: Refunds close after 30 days.
+  - id: order-a-2
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_tools: [lookup_policy, draft_reply]
+    expected_tool_order: [lookup_policy, draft_reply]
+    expected_contains: ["30 days"]
+    expected_failures: [tool_order]
+    mock:
+      events:
+        - {type: tool_call, name: draft_reply}
+        - {type: tool_call, name: lookup_policy}
+      final_answer: Refunds close after 30 days.
+
+  - id: citation-a-1
+    prompt: Cite the refund policy.
+    demographic_tag: group_a
+    expected_contains: ["30 days"]
+    allowed_citations: [docs.example.com]
+    expected_failures: [unsupported_citation]
+    mock:
+      events: [{type: citation, url: "https://invented.invalid/refunds"}]
+      final_answer: See https://invented.invalid/refunds for the 30 days rule.
+  - id: citation-b-1
+    prompt: Cite the refund policy.
+    demographic_tag: group_b
+    expected_contains: ["30 days"]
+    allowed_citations: [docs.example.com]
+    expected_failures: [unsupported_citation]
+    mock:
+      events: [{type: citation, url: "https://invented.invalid/refunds"}]
+      final_answer: See https://invented.invalid/refunds for the 30 days rule.
+  - id: citation-b-2
+    prompt: Cite the refund policy.
+    demographic_tag: group_b
+    expected_contains: ["30 days"]
+    allowed_citations: [docs.example.com]
+    expected_failures: [unsupported_citation]
+    mock:
+      events: [{type: citation, url: "https://invented.invalid/refunds"}]
+      final_answer: See https://invented.invalid/refunds for the 30 days rule.
+
+  - id: loop-a-1
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_contains: ["30 days"]
+    expected_failures: [repeated_step_loop]
+    mock:
+      events:
+        - {type: step, name: retry, content: checking}
+        - {type: step, name: retry, content: checking}
+        - {type: step, name: retry, content: checking}
+      final_answer: Refunds close after 30 days.
+  - id: loop-b-1
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_contains: ["30 days"]
+    expected_failures: [repeated_step_loop]
+    mock:
+      events:
+        - {type: step, name: retry, content: checking}
+        - {type: step, name: retry, content: checking}
+        - {type: step, name: retry, content: checking}
+      final_answer: Refunds close after 30 days.
+  - id: loop-a-2
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_contains: ["30 days"]
+    expected_failures: [repeated_step_loop]
+    mock:
+      events:
+        - {type: step, name: retry, content: checking}
+        - {type: step, name: retry, content: checking}
+        - {type: step, name: retry, content: checking}
+      final_answer: Refunds close after 30 days.
+
+  - id: incomplete-a-1
+    prompt: Explain the refund window.
+    demographic_tag: group_a
+    expected_contains: ["30 days"]
+    expected_failures: [task_fail]
+    mock: {events: [], final_answer: "I cannot determine the policy."}
+  - id: incomplete-b-1
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_contains: ["30 days"]
+    expected_failures: [task_fail]
+    mock: {events: [], final_answer: "I cannot determine the policy."}
+  - id: incomplete-b-2
+    prompt: Explain the refund window.
+    demographic_tag: group_b
+    expected_contains: ["30 days"]
+    expected_failures: [task_fail]
+    mock: {events: [], final_answer: "I cannot determine the policy."}

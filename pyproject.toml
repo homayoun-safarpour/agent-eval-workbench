@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-eval-workbench"
-version = "0.1.0"
-description = "Multi-axis agent evaluation: task success, reliability, bias probes, and failure-mode taxonomy."
+version = "0.2.0"
+description = "Controlled agent scenarios, trace evidence detectors, and uncertainty-aware evaluation."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -27,10 +27,14 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = []
+dependencies = [
+    "jsonschema>=4.21",
+    "PyYAML>=6.0",
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=7.4", "ruff>=0.4"]
+llm = ["openai>=1.40"]
 
 [project.urls]
 Homepage = "https://github.com/homayoun-safarpour/agent-eval-workbench"

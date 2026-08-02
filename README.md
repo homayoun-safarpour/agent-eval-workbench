@@ -1,6 +1,6 @@
 # agent-eval-workbench
 
-**Unit tests say the agent imported cleanly. Production still needs a scorecard for task success, repeatability, demographic gaps, and named failure modes. This workbench scores all four from the same run bundle.**
+**A pass rate cannot show whether an agent looped, skipped a required tool, cited an unapproved source, or failed one small group. This workbench executes controlled scenarios and evaluates the trace evidence.**
 
 [![CI](https://github.com/homayoun-safarpour/agent-eval-workbench/actions/workflows/ci.yml/badge.svg)](https://github.com/homayoun-safarpour/agent-eval-workbench/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
@@ -8,17 +8,19 @@
 
 ## The problem
 
-Agent demos report a single "success rate". That number hides flaky retries, group performance gaps, and *why* trials failed (forbidden tools, missing tools, loops, invented citations). Interviewers and on-call engineers need a multi-axis scorecard with exit codes, not a screenshot of a chat.
+Agent evaluations often report one success rate. That number hides flaky retries, group performance
+gaps, and the failure mechanism. The workbench runs versioned YAML scenarios, exports a validated
+bundle, detects failures from events and answers, and returns CI exit `0` or `2`.
 
 ## Threat model (when this fails in production)
 
 | Failure | What it looks like | What this repo does |
 | --- | --- | --- |
-| Success-only reporting | 80% pass; half the failures are forbidden tools | Named failure-mode rates on every scorecard |
-| Flaky agent treated as stable | One lucky trial greenlights a PR | Reliability = agreement across repeated trials |
-| Hidden demographic gap | Aggregate success hides group_a vs group_b | `bias_gap` = max-min success across tags |
-| Soft floor | Composite printed, never gated | `--min-composite` → exit `2` |
-| Trajectory gate confusion | Mixing tool-order CI with bias analysis | This is the scorecard layer; [trace-gate](https://github.com/homayoun-safarpour/trace-gate) is the deploy pin |
+| Success-only reporting | A pass hides a forbidden tool | Named trace-derived detector rates |
+| Exporter verdict trusted | `loop_detected=true` with no supporting trace | Repeated event and cycle signatures |
+| Citation accepted on sight | Answer links to an unapproved host | URL and host allowlist validation |
+| Hidden demographic gap | Aggregate rate hides small groups | Counts, Wilson intervals, gap, ratio, warnings |
+| Soft floor | Score prints but never gates | `--min-composite` returns exit `2` |
 
 ## Install
 
@@ -28,50 +30,117 @@ cd agent-eval-workbench
 pip install -e ".[dev]"
 ```
 
-Python 3.10+. Zero runtime dependencies. Optional Docker image included.
+Python 3.10+. Runtime dependencies are PyYAML and jsonschema. The OpenAI client is an optional extra.
 
 ## Quickstart
 
 ```bash
-agent-eval score examples/bundle_good.json
-agent-eval score examples/bundle_mixed.json --min-composite 0.95
+agent-eval run examples/scenarios/benchmark.yaml --output /tmp/benchmark.json
+agent-eval score /tmp/benchmark.json --json
 ```
 
-Real output from this repository:
+The default runner is deterministic and makes no API call. To opt into the Responses API:
 
+```bash
+pip install -e ".[llm]"
+OPENAI_API_KEY=... agent-eval run scenarios.yaml --backend openai --output /tmp/api.json
 ```
-$ agent-eval score examples/bundle_good.json
-composite=1.0000 success=1.0000 reliability=1.0000 bias_gap=0.0000
 
-$ agent-eval score examples/bundle_mixed.json --json
-(see examples/scorecard_mixed.json)
-```
+## Trace inputs
+
+- Generic JSON events through `agent-eval adapt --adapter generic`.
+- OpenAI Agents SDK exported spans through `agent-eval adapt --adapter openai-agents`.
+- Controlled YAML scenarios through `agent-eval run`.
+- Existing versioned bundles through `agent-eval score`.
+
+The SDK adapter consumes exported JSON and does not require the framework at runtime. Schema details
+are in [docs/SCHEMAS.md](docs/SCHEMAS.md).
 
 ## How we did it
 
-1. **Chose upstream patterns.** Trajectory eval demand is proven by [langchain-ai/agentevals](https://github.com/langchain-ai/agentevals) (MIT) and broader agent benches such as [reworkd/bananalyzer](https://github.com/reworkd/bananalyzer) (MIT). Full benches are too heavy for a 30-minute fork.
-2. **Restyled into one instrument.** MIT package `agent-eval-workbench`: JSON run bundles, repeated trials, demographic tags, deterministic detectors.
-3. **Sharp improvement.** Multi-axis scorecard with a named failure-mode taxonomy (`forbidden_tool`, `missing_tool`, `tool_order`, `hallucinated_citation`, `infinite_loop`) plus `bias_gap` and reliability. Named tests: `test_mixed_bundle_flags_failure_modes`, `test_bias_gap_when_groups_diverge`.
-4. **Reproduce committed artifacts:**
+The trace-evaluation shape follows public work in
+[langchain-ai/agentevals](https://github.com/langchain-ai/agentevals) (MIT). This repository keeps a
+smaller offline execution path, defines its own versioned contracts, adds uncertainty-aware group
+output, and normalizes OpenAI Agents SDK exports. A contributor can clone, install, run the 24
+scenarios, and inspect the measured JSON in under 30 minutes using the Quickstart.
 
-```bash
-agent-eval score examples/bundle_mixed.json --json > examples/scorecard_mixed.json
+## Evidence detectors
+
+- missing, forbidden, and relative-order tool checks use normalized `tool_call` events;
+- repeated-step loops use consecutive signatures and repeated cycles;
+- citation checks extract URLs from answers and citation events, then compare them with an allowlist;
+- task completion checks non-empty answers and required text;
+- reproducibility compares outcome and tool sequence across trials.
+
+The named tests are
+`test_controlled_scenario_runs_end_to_end`,
+`test_mixed_bundle_flags_failure_modes`,
+`test_openai_agents_adapter_extracts_tool_evidence`,
+`test_versioned_bundle_rejects_unknown_schema`, and
+`test_bias_gap_when_groups_diverge`.
+
+## Public benchmark
+
+`examples/scenarios/benchmark.yaml` contains 24 controlled scenarios with 18 labeled failures across
+six detector classes. A measured local run produced:
+
+```text
+true_positive=18 false_positive=0 false_negative=0
+precision=1.0000 recall=1.0000 recorded_cost_usd=0.00
 ```
 
-## Compose with the rest of the stack
+Reproduce the committed report and bundle:
 
-| Repo | Role next to this |
-| --- | --- |
-| [trace-gate](https://github.com/homayoun-safarpour/trace-gate) | Pin trajectory scores and fail CI on regression |
-| [judge-reliability-kit](https://github.com/homayoun-safarpour/judge-reliability-kit) | When a human/LLM judge labels outcomes, diagnose disagreement |
-| [judge-drift-sentinel](https://github.com/homayoun-safarpour/judge-drift-sentinel) | Detect judge drift on frozen anchors |
-| [agent-loop-engine](https://github.com/homayoun-safarpour/agent-loop-engine) | Use `--min-composite` exit `2` as a quality gate |
+```bash
+python scripts/run_benchmark.py
+```
+
+The full measured output, runtime, fairness intervals, scorecard, errors, and limitations are in
+[`examples/benchmark_results.json`](examples/benchmark_results.json). This synthetic benchmark tests
+detector behavior. It does not measure open-world agent quality.
+
+## Fairness interpretation
+
+Group output includes `n`, successes, rate, 95% Wilson interval, absolute gap, and disparity ratio.
+Groups below the minimum sample size receive an explicit warning. These outputs describe observed
+associations only. They do not identify causes or establish fairness.
+
+## Why PyTorch is absent
+
+The pinned deterministic benchmark recovered all 18 labels with no false positives. A learned
+trajectory anomaly scorer has not shown additional signal, so PyTorch would be a decorative
+dependency. PyTorch and learned-anomaly claims are excluded from the approved CV wording in
+[`docs/CV_EVIDENCE.md`](docs/CV_EVIDENCE.md).
 
 ## Docker (optional)
 
 ```bash
 docker build -t agent-eval-workbench .
-docker run --rm agent-eval-workbench score examples/bundle_good.json
+docker run --rm agent-eval-workbench
+```
+
+The image runs as UID 10001. CI builds and executes this path alongside Python 3.10-3.12 tests.
+
+## Exit codes
+
+- `0`: command completed and any requested composite floor passed.
+- `2`: score is below `--min-composite`.
+- other nonzero codes: invalid schema, configuration, or runtime error.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Adapter requests have a structured issue template.
+
+## Citation
+
+```bibtex
+@software{agent_eval_workbench,
+  author = {Homayoun Safarpour},
+  title = {Agent Evaluation Workbench},
+  url = {https://github.com/homayoun-safarpour/agent-eval-workbench},
+  version = {0.2.0},
+  year = {2026}
+}
 ```
 
 ## Topics
