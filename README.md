@@ -108,9 +108,7 @@ associations only. They do not identify causes or establish fairness.
 ## Why PyTorch is absent
 
 The pinned deterministic benchmark recovered all 18 labels with no false positives. A learned
-trajectory anomaly scorer has not shown additional signal, so PyTorch would be a decorative
-dependency. PyTorch and learned-anomaly claims are excluded from the approved CV wording in
-[`docs/CV_EVIDENCE.md`](docs/CV_EVIDENCE.md).
+trajectory anomaly scorer has not shown additional signal, so PyTorch is not a dependency.
 
 ## Docker (optional)
 
