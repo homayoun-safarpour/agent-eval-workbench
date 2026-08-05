@@ -6,7 +6,7 @@
 - [x] Named claim tests cover scenarios, adapters, evidence detectors, fairness, and schemas.
 - [x] `examples/benchmark_results.json` is measured output from 24 controlled scenarios.
 - [x] README quickstart runs offline with no API key.
-- [x] Public identity/privacy guard passes before push.
+- [x] Sole-contributor and public-doc hygiene checked before push.
 - [x] README uses direct engineering language.
 - [x] `docs/INTERVIEW.md` contains three questions, a two-minute run, and limitations.
 - [x] Docker builds a non-root image and executes the scenario path.

@@ -105,10 +105,11 @@ Group output includes `n`, successes, rate, 95% Wilson interval, absolute gap, a
 Groups below the minimum sample size receive an explicit warning. These outputs describe observed
 associations only. They do not identify causes or establish fairness.
 
-## Why PyTorch is absent
+## Why there is no learned scorer dependency
 
 The pinned deterministic benchmark recovered all 18 labels with no false positives. A learned
-trajectory anomaly scorer has not shown additional signal, so PyTorch is not a dependency.
+trajectory anomaly scorer has not shown additional signal on that set, so no deep-learning
+stack is required for the default path.
 
 ## Docker (optional)
 
