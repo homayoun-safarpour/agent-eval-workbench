@@ -1,12 +1,12 @@
-# Interview talking points — agent-eval-workbench
+# Interview talking points : agent-eval-workbench
 
 Five CLI-backed points for a technical screen (no resume recap).
 
-- **`agent-eval run examples/scenarios/benchmark.yaml --output /tmp/run.json`** — executes versioned YAML scenarios (mock backend in CI) and writes a schema-valid run bundle.
-- **`agent-eval score /tmp/run.json --json`** — prints success, reliability, fairness diagnostics, and failure-mode detector hits on one composite card.
-- **`agent-eval run examples/scenarios/forbidden-plus-missing.yaml --output examples/forbidden_plus_missing_OUTPUT.json --min-composite 0.99`** — fail-closed demo (exit `2`); see `examples/forbidden_plus_missing_CLI.txt`. Same floor pattern as `score --min-composite`.
-- **`agent-eval validate BUNDLE.json --kind bundle`** — jsonschema gate before you merge an exported trace bundle from another runner.
-- **`agent-eval adapt TRACE.json --adapter openai-agents --output events.json`** — normalizes framework traces into the event shape the detectors expect.
+- **`agent-eval run examples/scenarios/benchmark.yaml --output /tmp/run.json`** : executes versioned YAML scenarios (mock backend in CI) and writes a schema-valid run bundle.
+- **`agent-eval score /tmp/run.json --json`** : prints success, reliability, fairness diagnostics, and failure-mode detector hits on one composite card.
+- **`agent-eval run examples/scenarios/forbidden-plus-missing.yaml --output examples/forbidden_plus_missing_OUTPUT.json --min-composite 0.99`** : fail-closed demo (exit `2`); see `examples/forbidden_plus_missing_CLI.txt`. Same floor pattern as `score --min-composite`.
+- **`agent-eval validate BUNDLE.json --kind bundle`** : jsonschema gate before you merge an exported trace bundle from another runner.
+- **`agent-eval adapt TRACE.json --adapter openai-agents --output events.json`** : normalizes framework traces into the event shape the detectors expect.
 
 ## Three questions
 
