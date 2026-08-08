@@ -34,6 +34,8 @@ Python 3.10+. Runtime dependencies are PyYAML and jsonschema. The OpenAI client 
 
 ## Quickstart
 
+Claim boundaries: [docs/RELIABILITY_CARD.md](docs/RELIABILITY_CARD.md).
+
 ```bash
 agent-eval run examples/scenarios/benchmark.yaml --output /tmp/benchmark.json
 agent-eval score /tmp/benchmark.json --json
