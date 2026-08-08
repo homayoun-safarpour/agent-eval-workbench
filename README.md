@@ -39,15 +39,6 @@ agent-eval run examples/scenarios/benchmark.yaml --output /tmp/benchmark.json
 agent-eval score /tmp/benchmark.json --json
 ```
 
-Fail-closed path (forbidden + missing tools under a composite floor):
-
-```bash
-agent-eval run examples/scenarios/forbidden-plus-missing.yaml \
-  --output examples/forbidden_plus_missing_OUTPUT.json \
-  --min-composite 0.99
-# FAIL → exit 2 (see examples/forbidden_plus_missing_CLI.txt)
-```
-
 The default runner is deterministic and makes no API call. To opt into the Responses API:
 
 ```bash
@@ -138,6 +129,10 @@ The image runs as UID 10001. CI builds and executes this path alongside Python 3
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Adapter requests have a structured issue template.
+
+## Field alignment
+
+Agentic platform roles ask for eval harnesses that see tool use and failure modes, not only pass rate. Claim boundaries: [docs/RELIABILITY_CARD.md](docs/RELIABILITY_CARD.md).
 
 ## Citation
 
