@@ -1,4 +1,4 @@
-# agent-eval-workbench
+﻿# agent-eval-workbench
 
 **A pass rate cannot show whether an agent looped, skipped a required tool, cited an unapproved source, or failed one small group. This workbench executes controlled scenarios and evaluates the trace evidence.**
 
@@ -33,6 +33,8 @@ pip install -e ".[dev]"
 Python 3.10+. Runtime dependencies are PyYAML and jsonschema. The OpenAI client is an optional extra.
 
 ## Quickstart
+
+Interview pack: [docs/INTERVIEW.md](docs/INTERVIEW.md).
 
 Claim boundaries: [docs/RELIABILITY_CARD.md](docs/RELIABILITY_CARD.md).
 
