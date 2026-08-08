@@ -1,4 +1,4 @@
-# Interview talking points - agent-eval-workbench
+﻿# Interview talking points - agent-eval-workbench
 
 Five CLI-backed points for a technical screen (no resume recap).
 
@@ -22,3 +22,7 @@ Five CLI-backed points for a technical screen (no resume recap).
 ## One limitation
 
 The public benchmark is synthetic and tests known detector boundaries. Citation checks validate URLs against an allowlist, not the semantic truth of a source. Fairness diagnostics are non-causal.
+
+## Related instruments
+
+- [judge-field-guide](https://github.com/homayoun-safarpour/judge-field-guide) - CI-tested map of the LLM-judge ecosystem
