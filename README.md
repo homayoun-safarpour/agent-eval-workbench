@@ -138,6 +138,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Adapter requests have a structured issue
 
 Agentic platform roles ask for eval harnesses that see tool use and failure modes, not only pass rate. Claim boundaries: [docs/RELIABILITY_CARD.md](docs/RELIABILITY_CARD.md).
 
+## Related instruments
+
+- [trace-gate](https://github.com/homayoun-safarpour/trace-gate) - trajectory deploy gate
+- [agent-loop-engine](https://github.com/homayoun-safarpour/agent-loop-engine) - state, gates, decide, journal
+- [judge-field-guide](https://github.com/homayoun-safarpour/judge-field-guide) - link-checked map of the LLM-judge ecosystem
+
 ## Citation
 
 ```bibtex
