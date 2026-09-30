@@ -1,10 +1,38 @@
-﻿# agent-eval-workbench
+# workbench
 
-**A pass rate cannot show whether an agent looped, skipped a required tool, cited an unapproved source, or failed one small group. This workbench executes controlled scenarios and evaluates the trace evidence.**
+**A pass rate cannot show whether an agent looped, skipped a required tool, cited an unapproved source, or failed one small group.**
 
 [![CI](https://github.com/homayoun-safarpour/agent-eval-workbench/actions/workflows/ci.yml/badge.svg)](https://github.com/homayoun-safarpour/agent-eval-workbench/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+Trace-grounded agent eval: YAML scenarios, evidence detectors, uncertainty-aware group diagnostics, exit-code CI gate.
+
+```bash
+git clone https://github.com/homayoun-safarpour/agent-eval-workbench
+cd agent-eval-workbench && pip install -e .
+agent-eval score examples/forbidden_plus_missing_OUTPUT.json --min-composite 0.99
+```
+
+```text
+composite=0.0000 success=1.0000 reliability=1.0000 bias_gap=0.0000
+  fail:missing_tool=1.0000
+  fail:forbidden_tool=1.0000
+verdict: FAIL composite=0.0000 < floor=0.9900
+```
+
+That command exits 2. Task success is 1.0 while the composite is 0.0 because the trace used a forbidden tool and skipped a required one. The floor is the gate; the pass rate is not.
+
+## Use this when
+
+| Situation | Use this? |
+| --- | --- |
+| You need CI exit `0`/`2` on trace-derived detectors, not a printed pass rate | Yes |
+| You want versioned YAML scenarios with a mock backend and no API call | Yes |
+| You want an LLM-as-judge for free-text quality | No; this path is deterministic |
+| You need OpenTelemetry ingest | No; adapt exported JSON first |
+
+Python 3.10+. Runtime dependencies are PyYAML and jsonschema. The OpenAI client is an optional extra.
 
 ## The problem
 
@@ -22,16 +50,6 @@ bundle, detects failures from events and answers, and returns CI exit `0` or `2`
 | Hidden demographic gap | Aggregate rate hides small groups | Counts, Wilson intervals, gap, ratio, warnings |
 | Soft floor | Score prints but never gates | `--min-composite` returns exit `2` |
 
-## Install
-
-```bash
-git clone https://github.com/homayoun-safarpour/agent-eval-workbench
-cd agent-eval-workbench
-pip install -e ".[dev]"
-```
-
-Python 3.10+. Runtime dependencies are PyYAML and jsonschema. The OpenAI client is an optional extra.
-
 ## Quickstart
 
 Interview pack: [docs/INTERVIEW.md](docs/INTERVIEW.md).
@@ -48,6 +66,12 @@ The default runner is deterministic and makes no API call. To opt into the Respo
 ```bash
 pip install -e ".[llm]"
 OPENAI_API_KEY=... agent-eval run scenarios.yaml --backend openai --output /tmp/api.json
+```
+
+Regenerate the first-screen FAIL bundle:
+
+```bash
+agent-eval run examples/scenarios/forbidden-plus-missing.yaml --output examples/forbidden_plus_missing_OUTPUT.json --min-composite 0.99
 ```
 
 ## Trace inputs
@@ -136,7 +160,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Adapter requests have a structured issue
 
 ## Field alignment
 
-Agentic platform roles ask for eval harnesses that see tool use and failure modes, not only pass rate. Claim boundaries: [docs/RELIABILITY_CARD.md](docs/RELIABILITY_CARD.md).
+Agentic platform roles ask for eval harnesses that see tool use and failure modes, not only pass rate.
 
 ## Related instruments
 
