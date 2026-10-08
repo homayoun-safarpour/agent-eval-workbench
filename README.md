@@ -151,7 +151,10 @@ The image runs as UID 10001. CI builds and executes this path alongside Python 3
 ## Exit codes
 
 - `0`: command completed and any requested composite floor passed.
-- `2`: score is below `--min-composite`.
+- `2`: score is below `--min-composite`. Text output also shows group sample
+  counts, success rates, Wilson 95% intervals, the absolute group gap, and sample
+  warnings to help inspect the failure. These are descriptive, not causal.
+  `--json` keeps the existing structured scorecard on stdout.
 - other nonzero codes: invalid schema, configuration, or runtime error.
 
 ## Contributing
