@@ -8,9 +8,24 @@ import sys
 
 from agent_eval_workbench.adapters import load_trace
 from agent_eval_workbench.bundle import load_bundle
+from agent_eval_workbench.fairness import FairnessReport
 from agent_eval_workbench.runner import run_scenarios, write_bundle
 from agent_eval_workbench.schema import validate_document
 from agent_eval_workbench.scorecard import score_bundle
+
+
+def _print_failed_fairness(report: FairnessReport, *, json_output: bool) -> None:
+    if json_output:
+        return
+    print(f"  group_gap={report.absolute_gap:.4f}")
+    for group in report.groups:
+        print(
+            f"  group:{group.group} n={group.n} rate={group.rate:.4f} "
+            f"wilson95=[{group.ci_low:.4f}, {group.ci_high:.4f}]"
+        )
+    for warning in report.warnings:
+        print(f"  fairness: {warning}")
+    print(f"  {report.interpretation}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -85,6 +100,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  fail:{mode}={rate:.4f}")
 
     if args.min_composite is not None and card.composite < args.min_composite:
+        _print_failed_fairness(card.fairness, json_output=args.json)
         print(
             f"verdict: FAIL composite={card.composite:.4f} < floor={args.min_composite:.4f}",
             file=sys.stderr,

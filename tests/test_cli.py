@@ -47,6 +47,52 @@ def test_cli_score_mixed_fails_floor():
     assert proc.returncode == 2
 
 
+def test_cli_failed_floor_prints_group_wilson_rows():
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "agent_eval_workbench.cli",
+            "score",
+            str(ROOT / "examples" / "forbidden_plus_missing_OUTPUT.json"),
+            "--min-composite",
+            "0.99",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 2
+    assert "verdict: FAIL" in proc.stderr
+    for group in ("group_a", "group_b"):
+        assert f"group:{group} n=1 rate=1.0000" in proc.stdout
+    assert "wilson95=[0.2065, 1.0000]" in proc.stdout
+    assert "group_gap=0.0000" in proc.stdout
+    assert "insufficient sample" in proc.stdout
+
+
+def test_cli_failed_floor_json_remains_parseable():
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "agent_eval_workbench.cli",
+            "score",
+            str(ROOT / "examples" / "forbidden_plus_missing_OUTPUT.json"),
+            "--min-composite",
+            "0.99",
+            "--json",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 2
+    assert len(json.loads(proc.stdout)["fairness"]["groups"]) == 2
+
+
 def test_cli_run_scenario_exports_trace_and_json(tmp_path: Path):
     output = tmp_path / "run.json"
     proc = subprocess.run(
