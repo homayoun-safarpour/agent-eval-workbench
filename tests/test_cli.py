@@ -70,3 +70,26 @@ def test_cli_run_scenario_exports_trace_and_json(tmp_path: Path):
     assert proc.returncode == 0, proc.stderr
     assert json.loads(proc.stdout)["n_tasks"] == 24
     assert json.loads(output.read_text(encoding="utf-8"))["schema_version"] == "1.0"
+
+
+def test_cli_score_forbidden_floor_failure_prints_both_groups():
+    """#4: floor failure on the forbidden-plus-missing bundle exits 2 and prints both groups."""
+    proc = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "agent_eval_workbench.cli",
+            "score",
+            str(ROOT / "examples" / "forbidden_plus_missing_OUTPUT.json"),
+            "--min-composite",
+            "0.99",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert "group_a" in proc.stdout
+    assert "group_b" in proc.stdout
+    assert "gap=" in proc.stdout

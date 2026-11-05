@@ -13,6 +13,28 @@ from agent_eval_workbench.schema import validate_document
 from agent_eval_workbench.scorecard import score_bundle
 
 
+def _floor_failure_report(card, floor: float, *, json_mode: bool) -> int:
+    """Report a failed --min-composite floor: verdict line + per-group detail.
+
+    The verdict goes to stderr (as before). When not in --json mode, the
+    per-group Wilson rows the scorecard already computed are echoed to
+    stdout so the failure is diagnosable without re-running with --json.
+    """
+    print(
+        f"verdict: FAIL composite={card.composite:.4f} < floor={floor:.4f}",
+        file=sys.stderr,
+    )
+    if not json_mode:
+        for estimate in card.fairness.groups:
+            print(
+                f"group={estimate.group} n={estimate.n} "
+                f"rate={estimate.rate:.4f} "
+                f"ci=[{estimate.ci_low:.4f},{estimate.ci_high:.4f}] "
+                f"gap={card.fairness.absolute_gap:.4f}"
+            )
+    return 2
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="agent-eval",
@@ -85,11 +107,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  fail:{mode}={rate:.4f}")
 
     if args.min_composite is not None and card.composite < args.min_composite:
-        print(
-            f"verdict: FAIL composite={card.composite:.4f} < floor={args.min_composite:.4f}",
-            file=sys.stderr,
-        )
-        return 2
+        return _floor_failure_report(card, args.min_composite, json_mode=args.json)
     return 0
 
 
