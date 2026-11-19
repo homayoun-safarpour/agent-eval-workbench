@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "agent-eval-workbench"
+type: software
+authors:
+  - family-names: Safarpour
+    given-names: Homayoun
+    affiliation: "University of Limerick"
+repository-code: "https://github.com/homayoun-safarpour/agent-eval-workbench"
+url: "https://homayoun-safarpour.github.io"
+license: MIT
+version: "0.2.0"
+abstract: "Controlled agent scenarios, trace evidence detectors, and uncertainty-aware evaluation."
+keywords:
+  - "agent-loop"
+  - "benchmarking"
+  - "evaluation"
+  - "llm-agents"
+  - "llm-evaluation"
+  - "python"

@@ -1,4 +1,4 @@
-# Reliability card — agent-eval-workbench
+# Reliability card: agent-eval-workbench
 
 | Field | Value |
 | --- | --- |
