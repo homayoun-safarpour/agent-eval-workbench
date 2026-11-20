@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-Score agent runs from their trace events and fail CI below a composite floor (exit 0 or 2).
+Agent evaluation: score agent runs from their trace events and fail CI below a composite floor (exit 0 or 2).
 
 agent-eval-workbench is a command-line tool that runs YAML agent scenarios or reads exported runs and scores what the agent did from its trace. We built it because a pass rate shows only whether a task succeeded, whereas a successful run can still call a forbidden tool, skip a required one or cite an unapproved source. Given a run bundle, it applies fixed rules to each trace and combines task success, agreement between repeated trials, the gap between groups and forbidden or missing tools into one composite score. It prints a rate for each failure type and returns exit 2 below the `--min-composite` floor, so that CI can stop the change.
 
@@ -24,6 +24,10 @@ verdict: FAIL composite=0.0000 < floor=0.9900
 ```
 
 That command exits 2. The same command on `examples/bundle_good.json` exits 0.
+
+![agent-eval-workbench: run bundle is checked by fixed rules on each trace; the result is FAIL with exit 2](docs/readme-flow.svg)
+
+[How it works](#how-it-works) · [Results](#what-each-result-means) · [Limits](#limits) · [Interview pack](docs/INTERVIEW.md) · [Cite](#citation) · Part of [a small open stack for checking AI agents and their judges](https://homayoun-safarpour.github.io)
 
 ## What each result means
 
