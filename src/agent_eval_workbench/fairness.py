@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from agent_eval_workbench.bundle import TaskRun
+from agent_eval_workbench.failures import trial_succeeded
 
 MIN_COMPARISON_GROUPS = 2
 
@@ -51,7 +52,7 @@ def analyze_fairness(runs: list[TaskRun], min_group_n: int = 5) -> FairnessRepor
     for run in runs:
         if run.demographic_tag is not None:
             by_group.setdefault(str(run.demographic_tag), []).extend(
-                trial.success for trial in run.trials
+                trial_succeeded(run, trial) for trial in run.trials
             )
     estimates = []
     global_warnings: list[str] = []

@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 from agent_eval_workbench.bundle import TaskRun, Trial
 
 MIN_LOOP_REPEATS = 3
+_HOSTNAME = re.compile(r"[a-z0-9-]+(\.[a-z0-9-]+)*")
 
 
 @dataclass(frozen=True)
@@ -69,7 +70,12 @@ def _citation_urls(trial: Trial) -> set[str]:
 
 def _citation_allowed(url: str, allowed: list[str]) -> bool:
     normalized = url.rstrip("/")
-    host = urlsplit(url).netloc.lower()
+    parts = urlsplit(url)
+    host = (parts.hostname or "").lower()
+    # A backslash or userinfo in the authority lets a browser resolve a different
+    # host than the one the string appears to end with, so it is never allowed.
+    if "\\" in parts.netloc or "@" in parts.netloc or not _HOSTNAME.fullmatch(host):
+        return False
     return any(
         normalized == item.rstrip("/")
         or host == item.lower()
@@ -78,14 +84,27 @@ def _citation_allowed(url: str, allowed: list[str]) -> bool:
     )
 
 
-def detect_failures(run: TaskRun, trial: Trial) -> list[FailureHit]:
-    hits: list[FailureHit] = []
-    missing_content = [
+def _missing_content(run: TaskRun, trial: Trial) -> list[str]:
+    return [
         phrase
         for phrase in run.expected_contains
         if phrase.lower() not in trial.final_answer.lower()
     ]
-    if not trial.success or not trial.final_answer.strip() or missing_content:
+
+
+def trial_succeeded(run: TaskRun, trial: Trial) -> bool:
+    """A trial succeeds only when it claims success, gives a non-empty answer and
+    contains every `expected_contains` phrase. With no `expected_contains`, the
+    run's own success flag (plus a non-empty answer) is all there is to check."""
+    return bool(
+        trial.success and trial.final_answer.strip() and not _missing_content(run, trial)
+    )
+
+
+def detect_failures(run: TaskRun, trial: Trial) -> list[FailureHit]:
+    hits: list[FailureHit] = []
+    missing_content = _missing_content(run, trial)
+    if not trial_succeeded(run, trial):
         detail = (
             f"answer missing expected content: {missing_content}"
             if missing_content
@@ -98,7 +117,9 @@ def detect_failures(run: TaskRun, trial: Trial) -> list[FailureHit]:
     missing = expected - called
     if missing:
         hits.append(FailureHit("missing_tool", f"missing expected tools: {sorted(missing)}"))
-    forbidden = set(run.forbidden_tools) & called
+    # A forbidden tool counts if either source records it: events and tools_called
+    # can disagree, and dropping one of them would hide the call.
+    forbidden = set(run.forbidden_tools) & (called | set(trial.tools_called))
     if forbidden:
         hits.append(FailureHit("forbidden_tool", f"called forbidden: {sorted(forbidden)}"))
     # Order: expected tools should appear in the same relative order when present

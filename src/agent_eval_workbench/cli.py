@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 
 from agent_eval_workbench.adapters import load_trace
@@ -13,8 +14,25 @@ from agent_eval_workbench.schema import validate_document
 from agent_eval_workbench.scorecard import score_bundle
 
 
+class _Parser(argparse.ArgumentParser):
+    """Argument errors exit 1 (bad input), never 2, which means `verdict: FAIL`."""
+
+    def error(self, message: str) -> None:  # type: ignore[override]
+        self.exit(1, f"{self.prog}: error: {message} (see --help)\n")
+
+
+def _floor(value: str) -> float:
+    try:
+        floor = float(value)
+    except ValueError:
+        floor = math.nan
+    if not math.isfinite(floor) or not 0.0 <= floor <= 1.0:
+        raise argparse.ArgumentTypeError(f"must be a number from 0 to 1, got {value!r}")
+    return floor
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
+    parser = _Parser(
         prog="agent-eval",
         description="Score agent run bundles on success, reliability, bias, failure modes.",
     )
@@ -25,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     sc.add_argument("--json", action="store_true")
     sc.add_argument(
         "--min-composite",
-        type=float,
+        type=_floor,
         default=None,
         help="if set, exit 2 when composite falls below this floor",
     )
@@ -35,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--output", required=True, help="write the versioned run bundle here")
     run.add_argument("--backend", choices=["mock", "openai"], default="mock")
     run.add_argument("--model", default="gpt-4.1-mini")
-    run.add_argument("--min-composite", type=float, default=None)
+    run.add_argument("--min-composite", type=_floor, default=None)
     run.add_argument("--json", action="store_true")
 
     validate = sub.add_parser("validate", help="validate a versioned JSON document")

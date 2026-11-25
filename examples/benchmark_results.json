@@ -17,8 +17,8 @@
     "errors": []
   },
   "runtime": {
-    "elapsed_ms": 28.966,
-    "mean_scenario_ms": 1.207,
+    "elapsed_ms": 21.042,
+    "mean_scenario_ms": 0.877,
     "recorded_cost_usd": 0.0
   },
   "scorecard": {
@@ -62,7 +62,7 @@
       "repeated_step_loop": 0.125,
       "non_reproducible": 0.0
     },
-    "composite": 0.6666666666666667
+    "composite": 0.6041666666666667
   },
   "limitations": [
     "Synthetic scenarios test detector behavior, not open-world agent quality.",
