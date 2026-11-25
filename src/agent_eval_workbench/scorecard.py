@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from agent_eval_workbench.bundle import TaskRun
-from agent_eval_workbench.failures import FAILURE_MODES, detect_failures
+from agent_eval_workbench.failures import FAILURE_MODES, detect_failures, trial_succeeded
 from agent_eval_workbench.fairness import FairnessReport, analyze_fairness
 
 
@@ -29,14 +29,14 @@ def _trial_success_consistent(run: TaskRun) -> float:
     """1.0 if all trials agree on success; else fraction of majority agreement."""
     if not run.trials:
         return 0.0
-    flags = [t.success for t in run.trials]
+    flags = [trial_succeeded(run, t) for t in run.trials]
     majority = sum(flags) >= (len(flags) / 2)
     return sum(1 for f in flags if f == majority) / len(flags)
 
 
 def score_bundle(runs: list[TaskRun]) -> Scorecard:
     n_trials = sum(len(r.trials) for r in runs) or 1
-    successes = sum(1 for r in runs for t in r.trials if t.success)
+    successes = sum(1 for r in runs for t in r.trials if trial_succeeded(r, t))
     task_success_rate = successes / n_trials
 
     reliabilities = [_trial_success_consistent(r) for r in runs if r.trials]
@@ -52,7 +52,7 @@ def score_bundle(runs: list[TaskRun]) -> Scorecard:
                 fail_counts[hit.mode] = fail_counts.get(hit.mode, 0) + 1
         signatures = {
             (
-                trial.success,
+                trial_succeeded(r, trial),
                 tuple(trial.tools_called),
             )
             for trial in r.trials
@@ -61,13 +61,15 @@ def score_bundle(runs: list[TaskRun]) -> Scorecard:
             fail_counts["non_reproducible"] += len(r.trials)
     failure_rates = {m: fail_counts[m] / n_trials for m in FAILURE_MODES}
 
-    # Composite: reward success + reliability, penalize bias gap and forbidden/missing tools
+    # Composite: success scaled by reliability, so an agent that fails every task
+    # scores 0 however consistently it fails; then penalise the bias gap and
+    # forbidden or missing tools.
     penalty = (
         bias_gap
         + failure_rates.get("forbidden_tool", 0.0)
         + 0.5 * failure_rates.get("missing_tool", 0.0)
     )
-    composite = max(0.0, min(1.0, 0.5 * task_success_rate + 0.5 * reliability - penalty))
+    composite = max(0.0, min(1.0, task_success_rate * reliability - penalty))
 
     return Scorecard(
         n_tasks=len(runs),

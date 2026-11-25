@@ -40,3 +40,24 @@ def test_readme_stranger_score_exits_2():
         ]
     )
     assert code == 2
+
+
+def test_readme_first_screen_output_is_the_real_output(capsys):
+    assert main(["score", FAIL_BUNDLE, "--min-composite", "0.99"]) == 2
+    captured = capsys.readouterr()
+    for line in captured.out.splitlines() + captured.err.splitlines():
+        assert line in README, line
+
+
+def test_readme_benchmark_scorecard_is_the_real_output(tmp_path, capsys):
+    scenario = str(ROOT / "examples" / "scenarios" / "benchmark.yaml")
+    output = str(tmp_path / "run.json")
+    assert main(["run", scenario, "--output", output, "--min-composite", "0.10"]) == 0
+    lines = capsys.readouterr().out.splitlines()[1:]
+    assert lines and all(line in README for line in lines)
+
+
+def test_readme_states_how_the_composite_is_built_and_the_success_flag_limit():
+    assert "`success × reliability −" in README
+    assert "an agent that fails every task scores 0" in README
+    assert "the score trusts the run's own success flag" in README

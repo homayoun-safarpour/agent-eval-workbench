@@ -35,7 +35,7 @@ That command exits 2. The same command on `examples/bundle_good.json` exits 0.
 |---|---|---|
 | Scorecard only | 0 | The composite is at or above `--min-composite`, or no floor was given. |
 | `verdict: FAIL` (stderr) | 2 | The composite is below the `--min-composite` floor. |
-| Traceback | 1 | Bad input: an unknown `schema_version` or field, a missing file, or `--backend openai` without `OPENAI_API_KEY`. |
+| Error line or traceback | 1 | Bad input: an unknown `schema_version` or field, a missing file, a missing or unknown argument, a `--min-composite` that is not a number from 0 to 1 (such as `nan`), or `--backend openai` without `OPENAI_API_KEY`. |
 
 Above, success is 1.0 while the composite is 0.0, because both runs called the forbidden `delete_account` and skipped the required `lookup_policy`. Exit 0 shows that the composite met the floor under fixed rules. It does not show that an answer is correct beyond its required text or that a cited page supports it. Without `--min-composite` the command always exits 0. Claim limits: [`docs/RELIABILITY_CARD.md`](docs/RELIABILITY_CARD.md).
 
@@ -59,7 +59,7 @@ Agent evaluations often report one success rate. That number hides flaky retries
 
 1. `agent-eval run` executes YAML scenarios on the mock backend and writes a versioned bundle.
 2. `agent-eval score` runs the detectors on every trial of a bundle and prints the scorecard.
-3. The composite is `0.5 × success + 0.5 × reliability − (group gap + forbidden-tool rate + 0.5 × missing-tool rate)`, kept between 0 and 1. Reliability is how far repeated trials of a task agree.
+3. The composite is `success × reliability − (group gap + forbidden-tool rate + 0.5 × missing-tool rate)`, kept between 0 and 1. A trial counts as a success only when its `success` flag is true, its answer is not empty and it contains every `expected_contains` phrase. Reliability is how far repeated trials of a task agree; it scales success, so an agent that fails every task scores 0 however consistently it fails.
 
 ```bash
 agent-eval run examples/scenarios/benchmark.yaml --output run.json --min-composite 0.10
@@ -67,7 +67,7 @@ agent-eval run examples/scenarios/benchmark.yaml --output run.json --min-composi
 
 ```text
 bundle=run.json backend=mock
-composite=0.6667 success=0.8750 reliability=1.0000 bias_gap=0.0833
+composite=0.6042 success=0.8750 reliability=1.0000 bias_gap=0.0833
   fail:task_fail=0.1250
   fail:missing_tool=0.1250
   fail:forbidden_tool=0.1250
@@ -119,6 +119,8 @@ The script then prints the paths of the two files it rewrote, [`examples/benchma
 ## Limits
 
 - It is not a language-model judge. It checks tool calls, required text, citation hosts and repeated steps, and it does not grade the meaning of an answer.
+- Where a task gives no `expected_contains`, the score trusts the run's own success flag: any non-empty answer marked `success: true` counts as a success.
+- A group with fewer than 5 trials still counts in the group gap at full weight, so one failed trial in a small group can pull the composite to 0. The scorecard warns about such groups.
 - Only the group gap and forbidden or missing tools lower the composite directly. Loops, tool order and citation failures show as rates.
 - The benchmark is synthetic. It tests detector behaviour, not agent quality on open-world traces.
 - The citation check compares URLs and hosts with an allowlist. It does not check that the source supports the answer.
